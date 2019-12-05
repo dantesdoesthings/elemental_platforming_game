@@ -16,7 +16,7 @@ class MyGame(arcade.Window):
     def __init__(self, width, height, title):
         super().__init__(width, height, title)
 
-        arcade.set_background_color(arcade.color.DARK_SLATE_GRAY)
+        arcade.set_background_color(BACKGROUND_COLOR)
 
         # Used to keep track of our scrolling
         self.view_bottom = 0
@@ -57,7 +57,7 @@ class MyGame(arcade.Window):
         self.space.gravity = GRAVITY
         self.force = [0, 0]
 
-        self.space.add(self.player.body, self.player.shape)
+        self.space.add(self.player.body, self.player.shape, self.player.body2, self.player.shape2)
 
     def on_draw(self):
         """ Render the screen. """
@@ -79,6 +79,7 @@ class MyGame(arcade.Window):
         txt2 = f'ΔY : {self.player.body.velocity.y}'
         arcade.draw_text(txt1, 20 + self.view_left, SCREEN_HEIGHT - 20 + self.view_bottom, arcade.color.WHITE, 12)
         arcade.draw_text(txt2, 20 + self.view_left, SCREEN_HEIGHT - 40 + self.view_bottom, arcade.color.WHITE, 12)
+        # arcade.draw_circle_filled(self.player.body2.position.x, self.player.body2.position.y, 32, arcade.color.GRAY)
 
     def scroll_viewport(self):
         """ Manage scrolling of the viewport. """
@@ -124,10 +125,14 @@ class MyGame(arcade.Window):
 
         # If we have force to apply to the player (from hitting the arrow
         # keys), apply it.
-        self.player.body.apply_force_at_local_point(self.force, (0, 0))
+        # self.player.body.apply_force_at_local_point(self.force, (0, 0))
 
         # Max falling velocity
-        self.player.body.velocity.y = max(self.player.body.velocity.y, -PLAYER_FALL_VELOCITY)
+        self.player.body.velocity.y = max(self.player.body.velocity.y, -PLAYER_FALL_VELOCITY)  # TODO: This doesn't work
+
+        # Angular velocity
+        move_direction = 1 if self.player.body.velocity.x >= 0 else -1
+        self.player.body2.angular_velocity = PLAYER_ANGULAR_VELOCITY_MULTIPLIER * self.player.body.velocity.length * move_direction
 
         # ---- Final steps to apply the update ---
         # PyMunk space update
@@ -169,35 +174,55 @@ class MyGame(arcade.Window):
         """ Handle moving right """
         self.right_down += 1
         if self.left_down:
-            self.force[0] = 0
+            self.stop_player()
         else:
-            self.force[0] = PLAYER_MOVE_FORCE
+            self.move_player(True)
 
     def press_left(self):
         """ Handle moving left """
         self.left_down += 1
         if self.right_down:
-            self.force[0] = 0
+            self.stop_player()
         else:
-            self.force[0] = - PLAYER_MOVE_FORCE
+            self.move_player(False)
 
     def release_right(self):
         """ Handle letting go of the right key """
         self.right_down -= 1
         if not self.right_down:
             if self.left_down:
-                self.force[0] = - PLAYER_MOVE_FORCE
+                self.move_player(False)
             else:
-                self.force[0] = 0
+                self.stop_player()
 
     def release_left(self):
         """ Handle letting go of the left key """
         self.left_down -= 1
         if not self.left_down:
             if self.right_down:
-                self.force[0] = PLAYER_MOVE_FORCE
+                self.move_player(True)
             else:
-                self.force[0] = 0
+                self.stop_player()
+
+    def stop_player(self):
+        """ Handle removing all player impulse """
+        self.player.shape.surface_velocity = 0, 0
+        self.player.shape2.surface_velocity = 0, 0
+        self.player.shape.friction = PLAYER_STOPPING_FRICTION
+        self.player.body2.angular_velocity = 0
+
+    def move_player(self, forward: bool):
+        """ Handle setting player impulse """
+        if forward:
+            self.player.shape.surface_velocity = - PLAYER_MAX_HORIZONTAL_VELOCITY, 0
+            self.player.body2.angular_velocity = PLAYER_ANGULAR_VELOCITY_MULTIPLIER
+            self.player.shape2.surface_velocity = PLAYER_MAX_HORIZONTAL_VELOCITY, 0
+        else:
+            self.player.shape.surface_velocity = PLAYER_MAX_HORIZONTAL_VELOCITY, 0
+            self.player.body2.angular_velocity = - PLAYER_ANGULAR_VELOCITY_MULTIPLIER
+            self.player.shape2.surface_velocity = - PLAYER_MAX_HORIZONTAL_VELOCITY, 0
+        self.player.shape.friction = PLAYER_MOVING_FRICTION
+        self.player.shape2.friction = PLAYER_MOVING_FRICTION
 
 
 def main():

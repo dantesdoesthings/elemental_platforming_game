@@ -54,7 +54,7 @@ class MyGame(arcade.Window):
         x = 50
         y = (SPRITE_SIZE + SPRITE_SIZE / 2)
         self.player = PymunkSprite(path_utils.get_resource_file_path("images/character.png"),
-                                   x, y, scale=0.5, moment=pymunk.inf, mass=1, friction=PLAYER_FRICTION)
+                                   x, y, scale=0.5, moment=pymunk.inf, mass=1, friction=PLAYER_MOVING_FRICTION)
         self.dynamic_sprite_list.append(self.player)
         self.space.add(self.player.body, self.player.shape)
 

@@ -1,5 +1,6 @@
 import pymunk
 import arcade
+import math
 
 from elemental_platforming_game.utils import path_utils
 
@@ -8,6 +9,7 @@ from elemental_platforming_game.utils import path_utils
 SCREEN_WIDTH = 900
 SCREEN_HEIGHT = 500
 SCREEN_TITLE = 'Elemental Platformer'
+BACKGROUND_COLOR = arcade.color.LIGHT_GRAY
 
 # Default values
 DEFAULT_MASS = 1
@@ -19,17 +21,22 @@ DEFAULT_COLLISION_TYPE = 0
 GRAVITY = (0.0, -4000.0)
 
 # Player data
-PLAYER_IMAGE_PATH = path_utils.get_resource_file_path('images/character.png')
+PLAYER_IMAGE_PATH = path_utils.get_resource_file_path('images/PlayerWheel.png')
 PLAYER_MOVE_FORCE = 2000
-PLAYER_JUMP_IMPULSE = 1200
+PLAYER_JUMP_IMPULSE = 4000
 PLAYER_PUNCH_IMPULSE = 600
-PLAYER_MAX_HORIZONTAL_VELOCITY = 300
-PLAYER_FRICTION = 0.4
-PLAYER_MASS = 1
+PLAYER_MAX_HORIZONTAL_VELOCITY = 500
+PLAYER_MOVING_FRICTION = 0.5
+PLAYER_STOPPING_FRICTION = 0.1
+PLAYER_MASS = 5
 PLAYER_MOMENT = pymunk.inf
+PLAYER_SPRITE_MOMENT = 0.5 #pymunk.inf
 PLAYER_BODY_TYPE = pymunk.Body.DYNAMIC
 PLAYER_COLLISION_TYPE = 1
 PLAYER_FALL_VELOCITY = 600
+PLAYER_WHEEL_WIDTH = 64
+PLAYER_SCALE = 1.0
+PLAYER_ANGULAR_VELOCITY_MULTIPLIER = -2 / PLAYER_WHEEL_WIDTH
 
 # Terrain data
 GRASS_IMAGE_PATH = path_utils.get_resource_file_path('images/grass_block_64_64.png')
