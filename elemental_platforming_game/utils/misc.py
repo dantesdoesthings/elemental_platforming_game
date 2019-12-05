@@ -25,3 +25,8 @@ def check_grounding(player):
     player.body.each_arbiter(f)
 
     return grounding
+
+
+def cmp(x, y):
+    """Compares 2 variables, yielding -1, 0, or 1 depending on which is larger or if they're equal. """
+    return (x > y) - (x < y)

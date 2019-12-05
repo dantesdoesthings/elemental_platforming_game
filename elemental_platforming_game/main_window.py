@@ -77,8 +77,8 @@ class MyGame(arcade.Window):
         # Display speeds
         txt1 = f'ΔX : {self.player.body.velocity.x}'
         txt2 = f'ΔY : {self.player.body.velocity.y}'
-        arcade.draw_text(txt1, 20 + self.view_left, SCREEN_HEIGHT - 20 + self.view_bottom, arcade.color.WHITE, 12)
-        arcade.draw_text(txt2, 20 + self.view_left, SCREEN_HEIGHT - 40 + self.view_bottom, arcade.color.WHITE, 12)
+        arcade.draw_text(txt1, 20 + self.view_left, SCREEN_HEIGHT - 20 + self.view_bottom, TEXT_COLOR, 12)
+        arcade.draw_text(txt2, 20 + self.view_left, SCREEN_HEIGHT - 40 + self.view_bottom, TEXT_COLOR, 12)
         # arcade.draw_circle_filled(self.player.body2.position.x, self.player.body2.position.y, 32, arcade.color.GRAY)
 
     def scroll_viewport(self):
@@ -131,8 +131,14 @@ class MyGame(arcade.Window):
         self.player.body.velocity.y = max(self.player.body.velocity.y, -PLAYER_FALL_VELOCITY)  # TODO: This doesn't work
 
         # Angular velocity
-        move_direction = 1 if self.player.body.velocity.x >= 0 else -1
-        self.player.body2.angular_velocity = PLAYER_ANGULAR_VELOCITY_MULTIPLIER * self.player.body.velocity.length * move_direction
+        push_direction = misc.cmp(0, self.player.shape.surface_velocity.x)
+        if push_direction:
+            self.player.body2.angular_velocity = PLAYER_ANGULAR_VELOCITY_MULTIPLIER * \
+                max((abs(self.player.body.velocity.x), PLAYER_MAX_HORIZONTAL_VELOCITY / 2)) * push_direction
+        else:
+            move_direction = misc.cmp(self.player.body.velocity.x, 0)
+            self.player.body2.angular_velocity = PLAYER_ANGULAR_VELOCITY_MULTIPLIER * \
+                abs(self.player.body.velocity.x) * move_direction
 
         # ---- Final steps to apply the update ---
         # PyMunk space update
@@ -207,22 +213,15 @@ class MyGame(arcade.Window):
     def stop_player(self):
         """ Handle removing all player impulse """
         self.player.shape.surface_velocity = 0, 0
-        self.player.shape2.surface_velocity = 0, 0
         self.player.shape.friction = PLAYER_STOPPING_FRICTION
-        self.player.body2.angular_velocity = 0
 
     def move_player(self, forward: bool):
         """ Handle setting player impulse """
         if forward:
             self.player.shape.surface_velocity = - PLAYER_MAX_HORIZONTAL_VELOCITY, 0
-            self.player.body2.angular_velocity = PLAYER_ANGULAR_VELOCITY_MULTIPLIER
-            self.player.shape2.surface_velocity = PLAYER_MAX_HORIZONTAL_VELOCITY, 0
         else:
             self.player.shape.surface_velocity = PLAYER_MAX_HORIZONTAL_VELOCITY, 0
-            self.player.body2.angular_velocity = - PLAYER_ANGULAR_VELOCITY_MULTIPLIER
-            self.player.shape2.surface_velocity = - PLAYER_MAX_HORIZONTAL_VELOCITY, 0
         self.player.shape.friction = PLAYER_MOVING_FRICTION
-        self.player.shape2.friction = PLAYER_MOVING_FRICTION
 
 
 def main():

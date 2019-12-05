@@ -10,6 +10,7 @@ SCREEN_WIDTH = 900
 SCREEN_HEIGHT = 500
 SCREEN_TITLE = 'Elemental Platformer'
 BACKGROUND_COLOR = arcade.color.LIGHT_GRAY
+TEXT_COLOR = arcade.color.BLACK
 
 # Default values
 DEFAULT_MASS = 1
