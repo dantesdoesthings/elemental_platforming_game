@@ -6,4 +6,4 @@ def resync_physics_sprites(sprite_list):
     for sprite in sprite_list:
         sprite.center_x = sprite.shape.body.position.x
         sprite.center_y = sprite.shape.body.position.y
-        sprite.angle = math.degrees(sprite.shape2.body.angle)
+        sprite.angle = math.degrees(sprite.spinning_shape.body.angle)  # TODO: probably move sync to a physics_sprite method.

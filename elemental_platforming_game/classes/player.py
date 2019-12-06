@@ -30,11 +30,11 @@ class Player(physics_sprite.PhysicsSprite):
 
         self.body.velocity_func = limit_velocity
 
-        self.body2 = pymunk.Body(PLAYER_MASS, PLAYER_SPRITE_MOMENT, body_type=PLAYER_BODY_TYPE)
-        self.body2.position = self.body.position
-        self.shape2 = pymunk.Circle(self.body2, 32)
-        self.shape2.friction = 0.5
-        self.shape2.collision_type = PLAYER_COLLISION_TYPE
+        self.spinning_body = pymunk.Body(PLAYER_MASS, PLAYER_SPRITE_MOMENT, body_type=PLAYER_BODY_TYPE)
+        self.spinning_body.position = self.body.position
+        self.spinning_shape = pymunk.Circle(self.spinning_body, 32)
+        self.spinning_shape.friction = 0.5
+        self.spinning_shape.collision_type = PLAYER_COLLISION_TYPE
 
         def limit_velocity2(body, gravity, damping, dt):
             pymunk.Body.update_velocity(body, (0, 0), damping, dt)
@@ -44,7 +44,13 @@ class Player(physics_sprite.PhysicsSprite):
             elif horiz_vel < -PLAYER_MAX_HORIZONTAL_VELOCITY:
                 body.velocity = pymunk.Vec2d(-PLAYER_MAX_HORIZONTAL_VELOCITY, body.velocity.y)
 
-        self.body2.velocity_func = limit_velocity2
+        self.spinning_body.velocity_func = limit_velocity2
 
         self.shape.filter = pymunk.ShapeFilter(group=1, categories=0b1)
-        self.shape2.filter = pymunk.ShapeFilter(group=1, categories=0b1)
+        self.spinning_shape.filter = pymunk.ShapeFilter(group=1, categories=0b1)
+
+    def resync(self):
+        """ Resyncs the sprite to the pymunk Body """
+        self.center_x = self.shape.body.position.x
+        self.center_y = self.shape.body.position.y
+        self.angle = math.degrees(self.spinning_shape.body.angle)

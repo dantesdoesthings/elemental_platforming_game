@@ -9,7 +9,7 @@ from elemental_platforming_game.utils.constants import *
 from elemental_platforming_game.classes.player import Player
 from elemental_platforming_game.utils import physics_utils, misc
 
-
+USE_FORCE = True
 class MyGame(arcade.Window):
     """ Main application class. """
 
@@ -24,7 +24,7 @@ class MyGame(arcade.Window):
 
         # -- Pymunk
         self.space = None
-        self.force = None
+        self.force = 0, 0
 
         # Game objects
         self.player = None
@@ -34,8 +34,7 @@ class MyGame(arcade.Window):
         self.static_sprite_list = None
 
         # Movement state
-        self.right_down = 0
-        self.left_down = 0
+        self.push_direction = 0
 
     def setup(self):
         """ Set up the game here. Call this function to restart the game. """
@@ -57,7 +56,7 @@ class MyGame(arcade.Window):
         self.space.gravity = GRAVITY
         self.force = [0, 0]
 
-        self.space.add(self.player.body, self.player.shape, self.player.body2, self.player.shape2)
+        self.space.add(self.player.body, self.player.shape, self.player.spinning_body, self.player.spinning_shape)
 
     def on_draw(self):
         """ Render the screen. """
@@ -79,7 +78,7 @@ class MyGame(arcade.Window):
         txt2 = f'ΔY : {self.player.body.velocity.y}'
         arcade.draw_text(txt1, 20 + self.view_left, SCREEN_HEIGHT - 20 + self.view_bottom, TEXT_COLOR, 12)
         arcade.draw_text(txt2, 20 + self.view_left, SCREEN_HEIGHT - 40 + self.view_bottom, TEXT_COLOR, 12)
-        # arcade.draw_circle_filled(self.player.body2.position.x, self.player.body2.position.y, 32, arcade.color.GRAY)
+        # arcade.draw_circle_filled(self.player.spinning_body.position.x, self.player.spinning_body.position.y, 32, arcade.color.GRAY)
 
     def scroll_viewport(self):
         """ Manage scrolling of the viewport. """
@@ -125,19 +124,20 @@ class MyGame(arcade.Window):
 
         # If we have force to apply to the player (from hitting the arrow
         # keys), apply it.
-        # self.player.body.apply_force_at_local_point(self.force, (0, 0))
+        if USE_FORCE:
+            self.player.body.apply_force_at_local_point(self.force, (0, 0))
 
         # Max falling velocity
-        self.player.body.velocity.y = max(self.player.body.velocity.y, -PLAYER_FALL_VELOCITY)  # TODO: This doesn't work
+        # self.player.body.velocity.y = max(self.player.body.velocity.y, -PLAYER_FALL_VELOCITY)  # TODO: This doesn't work
 
         # Angular velocity
-        push_direction = misc.cmp(0, self.player.shape.surface_velocity.x)
+        push_direction = misc.cmp(self.push_direction, 0)
         if push_direction:
-            self.player.body2.angular_velocity = PLAYER_ANGULAR_VELOCITY_MULTIPLIER * \
+            self.player.spinning_body.angular_velocity = PLAYER_ANGULAR_VELOCITY_MULTIPLIER * \
                 max((abs(self.player.body.velocity.x), PLAYER_MAX_HORIZONTAL_VELOCITY / 2)) * push_direction
         else:
             move_direction = misc.cmp(self.player.body.velocity.x, 0)
-            self.player.body2.angular_velocity = PLAYER_ANGULAR_VELOCITY_MULTIPLIER * \
+            self.player.spinning_body.angular_velocity = PLAYER_ANGULAR_VELOCITY_MULTIPLIER * \
                 abs(self.player.body.velocity.x) * move_direction
 
         # ---- Final steps to apply the update ---
@@ -145,7 +145,7 @@ class MyGame(arcade.Window):
         self.space.step(1 / 60.0)
 
         # Resync the sprites to the physics objects that shadow them
-        physics_utils.resync_physics_sprites(self.dynamic_sprite_list)
+        [sprite.resync() for sprite in self.dynamic_sprite_list]
 
         # Scroll the viewport if needed
         self.scroll_viewport()
@@ -178,50 +178,52 @@ class MyGame(arcade.Window):
 
     def press_right(self):
         """ Handle moving right """
-        self.right_down += 1
-        if self.left_down:
-            self.stop_player()
-        else:
-            self.move_player(True)
+        self.push_direction += 1
+        self.move_player()
 
     def press_left(self):
         """ Handle moving left """
-        self.left_down += 1
-        if self.right_down:
-            self.stop_player()
-        else:
-            self.move_player(False)
+        self.push_direction -= 1
+        self.move_player()
 
     def release_right(self):
         """ Handle letting go of the right key """
-        self.right_down -= 1
-        if not self.right_down:
-            if self.left_down:
-                self.move_player(False)
-            else:
-                self.stop_player()
+        self.push_direction -= 1
+        self.move_player()
 
     def release_left(self):
         """ Handle letting go of the left key """
-        self.left_down -= 1
-        if not self.left_down:
-            if self.right_down:
-                self.move_player(True)
-            else:
-                self.stop_player()
+        self.push_direction += 1
+        self.move_player()
 
-    def stop_player(self):
-        """ Handle removing all player impulse """
-        self.player.shape.surface_velocity = 0, 0
-        self.player.shape.friction = PLAYER_STOPPING_FRICTION
+    # def stop_player(self):
+    #     """ Handle removing all player impulse """
+    #     self.player.force = 0, 0
+    #     # self.player.shape.surface_velocity = 0, 0
+    #     self.player.shape.friction = PLAYER_STOPPING_FRICTION
 
-    def move_player(self, forward: bool):
+    def move_player(self):
         """ Handle setting player impulse """
-        if forward:
-            self.player.shape.surface_velocity = - PLAYER_MAX_HORIZONTAL_VELOCITY, 0
+        if USE_FORCE:
+            if self.push_direction > 0:
+                self.force = PLAYER_MOVE_FORCE, 0
+                self.player.shape.friction = PLAYER_MOVING_FRICTION
+            elif self.push_direction < 0:
+                self.force = - PLAYER_MOVE_FORCE, 0
+                self.player.shape.friction = PLAYER_MOVING_FRICTION
+            else:
+                self.force = 0, 0
+                self.player.shape.friction = PLAYER_STOPPING_FRICTION
         else:
-            self.player.shape.surface_velocity = PLAYER_MAX_HORIZONTAL_VELOCITY, 0
-        self.player.shape.friction = PLAYER_MOVING_FRICTION
+            if self.push_direction > 0:
+                self.player.shape.surface_velocity = - PLAYER_MAX_HORIZONTAL_VELOCITY, 0
+                self.player.shape.friction = PLAYER_MOVING_FRICTION
+            elif self.push_direction < 0:
+                self.player.shape.surface_velocity = PLAYER_MAX_HORIZONTAL_VELOCITY, 0
+                self.player.shape.friction = PLAYER_MOVING_FRICTION
+            else:
+                self.player.shape.surface_velocity = 0, 0
+                self.player.shape.friction = PLAYER_STOPPING_FRICTION
 
 
 def main():

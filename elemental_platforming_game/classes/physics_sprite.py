@@ -2,6 +2,7 @@
 
 import arcade
 import pymunk
+import math
 
 from elemental_platforming_game.utils.constants import \
     DEFAULT_MASS, DEFAULT_MOMENT, DEFAULT_FRICTION, DEFAULT_COLLISION_TYPE
@@ -35,3 +36,9 @@ class PhysicsSprite(arcade.Sprite):
             self.shape = pymunk.Poly.create_box(self.body, (self.width, self.height))
         self.shape.friction = friction
         self.shape.collision_type = collision_type
+
+    def resync(self):
+        """ Resyncs the sprite to the pymunk Body """
+        self.center_x = self.shape.body.position.x
+        self.center_y = self.shape.body.position.y
+        self.angle = math.degrees(self.shape.body.angle)
