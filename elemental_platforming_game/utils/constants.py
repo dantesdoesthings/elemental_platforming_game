@@ -22,7 +22,8 @@ DEFAULT_COLLISION_TYPE = 0
 GRAVITY = (0.0, -4000.0)
 
 # Player data
-PLAYER_IMAGE_PATH = path_utils.get_resource_file_path('images/PlayerWheel2.png')
+PLAYER_WHEEL_IMAGE_PATH = path_utils.get_resource_file_path('images/PlayerWheel2.png')
+PLAYER_TORSO_IMAGE_PATH = path_utils.get_resource_file_path('images/PlayerBody2.png')
 PLAYER_MOVE_FORCE = 2000
 PLAYER_JUMP_IMPULSE = - GRAVITY[1] * 0.3
 PLAYER_PUNCH_IMPULSE = 600

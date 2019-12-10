@@ -52,6 +52,7 @@ class MyGame(arcade.Window):
         self.dynamic_sprite_list = arcade.SpriteList()
         self.static_sprite_list = arcade.SpriteList()
         self.dynamic_sprite_list.append(self.player)
+        self.dynamic_sprite_list.append(self.player.torso_sprite)
 
         # Pymunk
         self.space = pymunk.Space()
@@ -73,7 +74,7 @@ class MyGame(arcade.Window):
         # TODO: TEMPORARY
         arcade.draw_rectangle_filled(450, 25, 900, 50, arcade.color.GRAY_BLUE, 0)
         floor = pymunk.Poly(self.space.static_body, [(0, 0), (900, 0), (900, 50), (0, 50)])
-        hill = pymunk.Poly(self.space.static_body, [[350, 25], [575,300], [675,300], [900, 25]])
+        hill = pymunk.Poly(self.space.static_body, [[350, 25], [575, 200], [675, 200], [900, 25]])
         floor.friction = DEFAULT_FRICTION
         hill.friction = DEFAULT_FRICTION
         self.space.add(floor)
@@ -84,7 +85,7 @@ class MyGame(arcade.Window):
         arcade.draw_text(txt1, 20 + self.view_left, SCREEN_HEIGHT - 20 + self.view_bottom, TEXT_COLOR, 12)
         arcade.draw_text(txt2, 20 + self.view_left, SCREEN_HEIGHT - 40 + self.view_bottom, TEXT_COLOR, 12)
         # arcade.draw_circle_filled(self.player.spinning_body.position.x, self.player.spinning_body.position.y, 32, arcade.color.GRAY)
-        arcade.draw_polygon_filled([[350, 25], [575,300], [675,300], [900, 25]], arcade.color.GRAY_ASPARAGUS)
+        arcade.draw_polygon_filled([[350, 25], [575, 200], [675, 200], [900, 25]], arcade.color.GRAY_ASPARAGUS)
 
     def scroll_viewport(self):
         """ Manage scrolling of the viewport. """
@@ -201,12 +202,6 @@ class MyGame(arcade.Window):
         """ Handle letting go of the left key """
         self.push_direction += 1
         self.move_player()
-
-    # def stop_player(self):
-    #     """ Handle removing all player impulse """
-    #     self.player.force = 0, 0
-    #     # self.player.shape.surface_velocity = 0, 0
-    #     self.player.shape.friction = PLAYER_STOPPING_FRICTION
 
     def move_player(self):
         """ Handle setting player impulse """
