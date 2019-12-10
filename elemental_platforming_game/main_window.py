@@ -10,6 +10,8 @@ from elemental_platforming_game.classes.player import Player
 from elemental_platforming_game.utils import physics_utils, misc
 
 USE_FORCE = True
+
+
 class MyGame(arcade.Window):
     """ Main application class. """
 
