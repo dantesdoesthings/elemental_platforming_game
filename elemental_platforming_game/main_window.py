@@ -73,14 +73,18 @@ class MyGame(arcade.Window):
         # TODO: TEMPORARY
         arcade.draw_rectangle_filled(450, 25, 900, 50, arcade.color.GRAY_BLUE, 0)
         floor = pymunk.Poly(self.space.static_body, [(0, 0), (900, 0), (900, 50), (0, 50)])
+        hill = pymunk.Poly(self.space.static_body, [[350, 25], [575,300], [675,300], [900, 25]])
         floor.friction = DEFAULT_FRICTION
+        hill.friction = DEFAULT_FRICTION
         self.space.add(floor)
+        self.space.add(hill)
         # Display speeds
         txt1 = f'ΔX : {self.player.body.velocity.x}'
         txt2 = f'ΔY : {self.player.body.velocity.y}'
         arcade.draw_text(txt1, 20 + self.view_left, SCREEN_HEIGHT - 20 + self.view_bottom, TEXT_COLOR, 12)
         arcade.draw_text(txt2, 20 + self.view_left, SCREEN_HEIGHT - 40 + self.view_bottom, TEXT_COLOR, 12)
         # arcade.draw_circle_filled(self.player.spinning_body.position.x, self.player.spinning_body.position.y, 32, arcade.color.GRAY)
+        arcade.draw_polygon_filled([[350, 25], [575,300], [675,300], [900, 25]], arcade.color.GRAY_ASPARAGUS)
 
     def scroll_viewport(self):
         """ Manage scrolling of the viewport. """
@@ -164,7 +168,7 @@ class MyGame(arcade.Window):
             # find out if player is standing on ground
             grounding = misc.check_grounding(self.player)
             if grounding['body'] is not None and abs(
-                    grounding['normal'].x / grounding['normal'].y) < self.player.shape.friction:
+                    grounding['normal'].x / grounding['normal'].y) < PLAYER_MAX_ALLOWABLE_JUMP_ANGLE:
                 self.player.body.apply_impulse_at_local_point((0, PLAYER_JUMP_IMPULSE))
         elif symbol == arcade.key.ESCAPE:
             arcade.close_window()
