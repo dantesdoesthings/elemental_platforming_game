@@ -26,7 +26,7 @@ class MyGame(arcade.Window):
 
         # -- Pymunk
         self.space = None
-        self.force = 0, 0
+        self.force = pymunk.Vec2d(0, 0)
 
         # Game objects
         self.player = None
@@ -57,7 +57,7 @@ class MyGame(arcade.Window):
         # Pymunk
         self.space = pymunk.Space()
         self.space.gravity = GRAVITY
-        self.force = [0, 0]
+        self.force = pymunk.Vec2d(0, 0)
 
         self.space.add(self.player.body, self.player.shape, self.player.spinning_body, self.player.spinning_shape)
 
@@ -86,6 +86,13 @@ class MyGame(arcade.Window):
         arcade.draw_text(txt2, 20 + self.view_left, SCREEN_HEIGHT - 40 + self.view_bottom, TEXT_COLOR, 12)
         # arcade.draw_circle_filled(self.player.spinning_body.position.x, self.player.spinning_body.position.y, 32, arcade.color.GRAY)
         arcade.draw_polygon_filled([[350, 25], [575, 200], [675, 200], [900, 25]], arcade.color.GRAY_ASPARAGUS)
+        arcade.draw_line(100 + self.view_left,
+                         SCREEN_HEIGHT - 100 + self.view_bottom,
+                         100 + self.view_left + 50 * math.cos(self.force.angle),
+                         SCREEN_HEIGHT - 100 + self.view_bottom + 50 * math.sin(self.force.angle),
+                         arcade.color.RED)
+        txt3 = f'Fx: {self.force.x}, Fy: {self.force.y}'
+        arcade.draw_text(txt3, 20 + self.view_left, SCREEN_HEIGHT - 60 + self.view_bottom, TEXT_COLOR, 12)
 
     def scroll_viewport(self):
         """ Manage scrolling of the viewport. """
@@ -207,13 +214,19 @@ class MyGame(arcade.Window):
         """ Handle setting player impulse """
         if USE_FORCE:
             if self.push_direction > 0:
-                self.force = PLAYER_MOVE_FORCE, 0
+                self.force = pymunk.Vec2d(PLAYER_MOVE_FORCE, 0)
+                grounding = misc.check_grounding(self.player)
+                if grounding['body'] is not None:
+                    self.force.angle = grounding['normal'].angle - math.pi / 2
                 self.player.shape.friction = PLAYER_MOVING_FRICTION
             elif self.push_direction < 0:
-                self.force = - PLAYER_MOVE_FORCE, 0
+                self.force = pymunk.Vec2d(-PLAYER_MOVE_FORCE, 0)
+                grounding = misc.check_grounding(self.player)
+                if grounding['body'] is not None:
+                    self.force.angle = grounding['normal'].angle + math.pi / 2
                 self.player.shape.friction = PLAYER_MOVING_FRICTION
             else:
-                self.force = 0, 0
+                self.force = pymunk.Vec2d(0, 0)
                 self.player.shape.friction = PLAYER_STOPPING_FRICTION
         else:
             if self.push_direction > 0:

@@ -31,18 +31,19 @@ class Player(physics_sprite.PhysicsSprite):
 
         self.body.velocity_func = limit_velocity
 
+        # Torso
         self.torso_shape = pymunk.Poly(self.body, [(0, 0), (0, 63), (95, 63), (95, 0)])
         self.torso_shape.friction = self.shape.friction
         self.torso_shape.collision_type = self.shape.collision_type
+        self.torso_sprite = arcade.Sprite(PLAYER_TORSO_IMAGE_PATH, scale=scale, center_x=center_x, center_y=center_y)
+        self.torso_sprite.resync = lambda: None
 
+        # Spinning wheel
         self.spinning_body = pymunk.Body(PLAYER_MASS, PLAYER_SPRITE_MOMENT, body_type=PLAYER_BODY_TYPE)
         self.spinning_body.position = self.body.position
         self.spinning_shape = pymunk.Circle(self.spinning_body, 32)
         self.spinning_shape.friction = 0.5
         self.spinning_shape.collision_type = PLAYER_COLLISION_TYPE
-
-        self.torso_sprite = arcade.Sprite(PLAYER_TORSO_IMAGE_PATH, scale=scale, center_x=center_x, center_y=center_y)
-        self.torso_sprite.resync = lambda: None
 
         def limit_velocity2(body, gravity, damping, dt):
             pymunk.Body.update_velocity(body, (0, 0), damping, dt)
